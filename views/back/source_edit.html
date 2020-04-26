@@ -1,0 +1,236 @@
+<!-- 继承base.html的基础样式 -->
+{% extends "back/base.html" %}
+
+<!-- 要新增的样式 -->
+{% block style %}
+<style>
+    .preview {
+        width: 50px;
+        /* height: 90px; */
+        padding: 0;
+        margin-left: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .preview:hover .cover {
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .preview:hover .fa-upload {
+        color: #f0f0f0cc;
+    }
+
+    #upfile {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 9;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+    }
+
+    .cover {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        line-height: 90px;
+        font-size: 40px;
+        background-color: rgba(0, 0, 0, 0);
+        transition: all 0.3s;
+    }
+
+    .fa-upload {
+        color: rgba(240, 240, 240, 0);
+    }
+</style>
+{% endblock %}
+
+<!-- 主要内容 -->
+{% block body %}
+<div class="container-fluid">
+    <div class="body advert">
+        <!-- 面包屑 -->
+        <ol class="breadcrumb">
+            <li><a href="/back/source_list">资源文章管理</a></li>
+            <li class="active">修改资源文章</li>
+        </ol>
+        <div class="advert-add">
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- 要新增的脚本 -->
+{% block script %}
+<script src="./js/wangEditor/release/wangEditor.js"></script>
+<script>
+    $(function () {
+        // 1.加载数据
+        loadData();
+    });
+
+    function loadData() {
+        // 获取url ？后面的部分
+        let url = window.location.search;
+        let sowingId = '';
+        // 判断url是否拿到了id
+        if (url.indexOf('?') !== -1) {
+            sourceId = url.substr(url.indexOf('=') + 1);
+        } else {
+            alert('获取sourceId失败！');
+        }
+        console.log('ongoing！');
+
+        // 加时间戳，解决304的问题
+        let timer = new Date().getTime().toString();
+        // 发起ajax请求
+        $.ajax({
+            url: '/back/source/api/single/' + sourceId + '?t=' + timer,
+            type: 'get',
+            // dataType: 'json',
+            dataType: 'json',
+            success: function (data) {
+                // 1.将请求数据添加到模板中
+                console.log(data);
+                let result = data.result;
+                console.log(result);
+                let tpl = `
+                <form action="/back/source/api/edit" class="form-horizontal" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">标题</label>
+                    <div class="col-md-5">
+                        <input value="${result.title}" name="title" type="text" class="form-control input-sm" placeholder="填写文章标题" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">作者</label>
+                    <div class="col-md-5">
+                        <input value="${result.author}" name="author" type="text" class="form-control input-sm" placeholder="请填写文章作者" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">缩略图</label>
+                    <div class="col-md-2 preview">
+                        <img id="small_img" src="/uploads/${result.small_img}" style="border: 1px solid #e0e0e0;">
+                        <input type="file" id="upfile">
+                        <div class="cover">
+                            <i class="fa fa-upload"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">价格</label>
+                    <div class="col-md-5">
+                        <input value="${result.price}" name="price" type="number" class="form-control input-sm" placeholder="请填写价格" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">文章内容</label>
+                    <div class="col-md-8">
+                        <div id="editor"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-8">
+                        <input href="#" class="btn btn-danger btn-sm pull-right" value="编辑文章" type="submit">
+                    </div>
+                </div>
+            </form>
+                `;
+                // 2.将模板渲染到页面中
+                $('.advert-add').html(tpl);
+
+                // 3.配置编辑器
+                let E = window.wangEditor;
+                let editor = new E('#editor');
+                // 自定义上传事件
+                editor.customConfig.customUploadImg = function (files, insert) {
+                    console.log(files);
+                    // 上传图片到服务器
+                    if (files.length > 0) { // 有图片文件
+                        // 取出图片
+                        let formData = new FormData();
+                        formData.append('image_url', files[0]);
+                        // 发起ajax请求
+                        $.ajax({
+                            url: 'http://localhost:3000/back/source/api/add_img',
+                            type: 'post',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function (data) {
+                                console.log(data);
+                                if (data.status === 200) { // 上传成功
+                                    insert(data.result);
+                                }
+                            }
+                        });
+                    }
+                };
+                editor.create();
+                // 给编辑器设置内容
+                editor.txt.html(data.result.content);
+
+                // 4.处理上传图片
+                $('#upfile').on('change', function () {
+                    // 获取用户上传的图片
+                    let file = $(this).get(0).files[0]; //获取第一张上传的图片
+                    // 读取该文件
+                    let reader = new FileReader();
+                    if (file) {
+                        reader.readAsDataURL(file);
+                    }
+                    // 监听是否读完
+                    reader.onloadend = () => {
+                        $('#small_img').attr('src', reader.result);
+                    }
+                });
+
+                // 5.提交表单
+                $('form').on('submit', function () {
+                    // 处理上传修改的数据
+                    let content = editor.txt.html();
+
+                    if (content) {
+                        // 初始化数据
+                        let formData = new FormData($(this).get(0));
+                        // console.log(formData)
+                        formData.append('id', result._id);
+                        formData.append('content', content);
+                        formData.append('small_img', $('#upfile').get(0).files[0] || result.small_img);
+                        // for (var value of formData.values()) {
+                        //    console.log(value);
+                        // }
+
+                        // // 发起ajax请求
+                        let $form = $("form");
+                        $.ajax({
+                            url: $form.attr('action'),
+                            type: $form.attr('method'),
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function (data) {
+                                console.log(data);
+                                if (data.status === 200) {
+                                    alert('修改资源文章成功！');
+                                    window.location.href = '/back/source_list'
+                                } else {
+                                    alert('添加资源文章失败！');
+                                }
+                            }
+                        });
+                    }
+                    return false;
+                });
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends "back/base.html"%}
+
+<!--新增的样式-->
+{% block style %}
+{% endblock %}
+
+<!--主要内容-->
+{% block body %}
+<div class="container-fluid">
+    <!-- 讲师资料 -->
+    <div class="body teacher-profile">
+        <div class="settings" id="all_msg">
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!--脚本-->
+{% block script %}
+<script>
+    $(function () {
+        // 1.获取本地token
+        let token = JSON.parse(localStorage.getItem('result')).result.token;
+        console.log(token);
+
+        // 加时间戳，解决304的问题
+        let timer = new Date().getTime().toString();
+        if (token) {
+            // 2.发起ajax请求，获取用户所有信息
+            $.ajax({
+                // /back/user/api/u_msg_all/
+                url: 'http://localhost:3000/back/user/api/u_msg_all/' + token + '?t=' + timer,
+                type: 'get',
+                dataType: 'json',
+                success: function (data) {
+                    // 3.填充数据
+                    console.log(data);
+                    let tmp = `
+                    <form id="user_form" action="/back/user/api/edit" class="form-horizontal" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">姓名</label>
+                    <div class="col-md-5">
+                        <input name="real_name" type="text" class="form-control input-sm" required value="${data.result.real_name}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">头像</label>
+                    <div class="col-md-2 preview">
+                        <img id="icon_url" src="${data.result.icon_url && data.result.icon_url != 'undefined' ? '/uploads/'+  data.result.icon_url : './uploads/avatar.png'}" style="border: 1px solid #e0e0e0;">
+                        <input type="file" id="upfile">
+                        <div class="cover">
+                            <i class="fa fa-upload"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">手机号码</label>
+                    <div class="col-md-5">
+                        <input name="phone" id="phone" type="text" class="form-control input-sm" required value="${data.result.phone ? data.result.phone: ''}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">Email</label>
+                    <div class="col-md-5">
+                        <input name="e_mail" id="e_mail" type="text" class="form-control input-sm" required value="${data.result.e_mail ? data.result.e_mail: ''}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">加入日期</label>
+                    <div class="col-md-5">
+                        <input name="join_time" type="date" class="form-control input-sm" value="${data.result.join_time ? data.result.join_time: ''}" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="" class="col-md-3 control-label">自我介绍</label>
+                    <div class="col-md-5 ckeditor">
+                        <textarea name="intro_self" rows="15" class="form-control input-sm" required>${data.result.intro_self ? data.result.intro_self: ''}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-8">
+                        <input type="button" class="btn btn-danger pull-right" id="msg_edit" value="修改信息" />
+                        <a href="/back/u_reset_pwd" class="btn btn-link btn-success pull-right" id="reset_pwd">修改密码？</a>
+                    </div>
+                </div>
+            </form>
+                    `;
+                    $('#all_msg').html(tmp);
+
+                    // 4.修改头像
+                    $('#upfile').on('change', function () {
+                        // 4.1 获取用户上传的图片
+                        let file = $(this).get(0).files[0];
+                        // 4.2 读取这个文件
+                        let reader = new FileReader();
+                        if (file) {
+                            reader.readAsDataURL(file);
+                        }
+
+                        // 4.3 监听文件是否读取完毕
+                        reader.onload = () => {
+                            $('#icon_url').attr('src', reader.result);
+                        }
+                    });
+
+                    // 5. 点击提交数据
+                    $('#msg_edit').on('click', function () {
+                        // 5.1 手机/邮箱验证
+                        let $phone = $('#phone'),
+                            $e_mail = $('#e_mail');
+                        if (/^[1][3,4,5,7,8][0-9]{9}$/.test($phone.val()) === false) {
+                            alert('请输入正确的手机号码');
+                            $phone.val('');
+                            return;
+                        }
+                        if (/^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/
+                            .test($e_mail.val()) === false) {
+                            alert('请输入正确的电子邮箱');
+                            $e_mail.val('');
+                            return;
+                        }
+
+                        // 5.2 发起ajax请求
+                        let icon_url = $("#upfile").get(0).files[0] || data.result.icon_url;
+                        let $user_form = $("#user_form");
+                        let formData = new FormData($user_form.get(0));
+                        formData.append('token', token);
+                        formData.append('icon_url', icon_url);
+
+                        $.ajax({
+                            type: $user_form.attr('method'),
+                            url: $user_form.attr('action'),
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function (data) {
+                                console.log(data);
+                                if(data.status === 200) {
+                                    alert('修改信息成功！');
+                                    window.location.href = '/back/u_center';
+                                } else {
+                                    alert('用户信息修改失败！');
+                                }
+                            }
+                        })
+                    });
+                }
+            });
+        } else {
+            // 删除本地数据
+            localStorage.removeItem('result');
+            // 跳转到登录界面
+            window.location.href = '/back/login';
+        }
+    });
+</script>
+{% endblock %}
