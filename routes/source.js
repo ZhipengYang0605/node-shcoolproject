@@ -5,22 +5,7 @@ import formidable from 'formidable'
 import { basename } from 'path'
 import config from '../src/config'
 
-// *************************后台接口******************************
-
-// 1.获取所有文章列表
-// router.get('/back/source/api/list', (req, res, next) => {
-//     Source.find({}, "_id title is_store price author", (err, docs) => {
-//         if (err) {
-//             return next(err);
-//         }
-//         // 数据返回
-//         res.json({
-//             status: 200,
-//             result: docs
-//         })
-//     });
-// })
-
+// *************************后台接口 start******************************
 // 图片上传到服务器
 router.post('/back/source/api/add_img', (req, res, next) => {
     const form = new formidable.IncomingForm();
@@ -31,8 +16,6 @@ router.post('/back/source/api/add_img', (req, res, next) => {
             return next(err);
         }
         if (files.image_url) {
-            // console.log(files);
-            // console.log(files.image_url.path);
             let image_url = 'http://localhost:3000/uploads/' + basename(files.image_url.path);
             res.json({
                 status: 200,
@@ -86,7 +69,6 @@ router.post('/back/source/api/add', (req, res, next) => {
 router.get('/back/source/api/single/:sourceId', (req, res, next) => {
     Source.findById(req.params.sourceId, (err, docs) => {
         if (err) {
-            console.log(err);
             return next(err);
         }
         // 返回数据
@@ -108,7 +90,6 @@ router.post('/back/source/api/edit', (req, res, next) => {
         }
         // 1. 取出普通字段
         let body = fields;
-        // console.log(body);
         // 2. 根据id查询文档
         Source.findById(body.id, (err, source) => {
             if (err) {
@@ -154,7 +135,6 @@ router.get('/back/source/api/count', (req, res, next) => {
         if (err) {
             return next(err);
         }
-        // console.log('count'+count);
         res.json({
             status: 200,
             result: count
@@ -169,15 +149,12 @@ router.get('/back/source/api/list', (req, res, next) => {
     let page = Number.parseInt(req.query.page) || 1;
     // 参数二：每页显示的条数
     let pageSize = Number.parseInt(req.query.pageSize) || 3;
-    // console.log('page'+page);
-    // console.log('pageSize'+pageSize);
     // 根据计算，每次查找从(page-1)*pageSize开始
     // 操作数据库
     Source.find().skip((page - 1) * pageSize).limit(pageSize).exec((err, sources) => {
         if (err) {
             return next(err);
         }
-        // console.log(sources);
         res.json({
             status: 200,
             result: sources
@@ -185,8 +162,10 @@ router.get('/back/source/api/list', (req, res, next) => {
     });
 })
 
+// *************************后台接口 end******************************
 
-// *************************后台页面路由*****************************
+
+// *************************后台页面路由 start*****************************
 // // 1. 查询数据库并渲染页面
 // router.get('/back/source_list', (req, res, next) => {
 //     Source.find((err, sources) => {
@@ -202,7 +181,6 @@ router.get('/back/source/api/list', (req, res, next) => {
 //     // 接收两个参数
 //     // 参数一：当前页面
 //     let page = Number.parseInt(req.query.page) || 1;
-//     // console.log(page);
 //     // 参数二：每页显示的条数
 //     let pageSize = Number.parseInt(req.query.pageSize) || 3;
 //     // 根据计算，每次查找从(page-1)*pageSize开始
@@ -219,9 +197,6 @@ router.get('/back/source/api/list', (req, res, next) => {
 
 //             // 计算总页数
 //             let totalPage = Math.ceil(count / pageSize);
-//             // console.log('count'+count);
-//             // console.log('pageSize'+pageSize);
-//             // console.log('总页数'+totalPage);
 //             // 渲染资源文章列表页面
 //             res.render('back/source_list.html', { sources, totalPage, page });
 //         })
@@ -243,5 +218,88 @@ router.get('/back/source_add', (req, res, next) => {
 router.get('/back/source_edit', (req, res, next) => {
     res.render('back/source_edit.html');
 })
+// *************************后台页面路由 end*****************************
 
+// *************************前台接口路由 start*****************************
+// 1.请求资源总数量
+router.get('/web/source/api/count', (req, res, next) => {
+    Source.countDocuments((err, count) => {
+        if(err){
+            return next(err);
+        }
+        // 返回数据
+        res.json({
+            status: 200,
+            result: count
+        });
+    });
+})
+
+// 2. 获取资源列表
+router.get("/web/source/api/list", (req, res, next) => {
+    // 2.1.接收客户端传递的参数
+    let {page, pageSize, sortBy} = req.query; //这里使用的是对象的解构赋值
+    page = Number.parseInt(page) || 1;
+    pageSize = Number.parseInt(pageSize) || 100;
+
+    // 2.2.制定数据排序规则： -1位降序， 1位升序
+    let sortObj;
+    if(sortBy === "price"){
+        sortObj = { "price": -1 };
+    } else {
+        sortObj = { "read_count": -1 };
+    }
+
+    // 2.3. 查询所有的数据
+    Source.find({}, "title small_img price").sort(sortObj).skip(pageSize*(page-1)).limit(pageSize).exec((err, sources) => {
+        if(err){
+            return next(err);
+        }
+        // 返回数据
+        res.json({
+            status: 200,
+            result: sources
+        });
+    })
+})
+
+// 3. 获取资源文章详情数据
+router.get("/web/source/api/content/:sourceId", (req, res, next) => {
+    // 获取id
+    let sourceId = req.params.sourceId;
+    // 查询数据库
+    Source.find({_id: sourceId}, "title author read_count add_time content", (err, sources) => {
+        if(err){
+            return next(err);
+        }
+        res.json({
+            status: 200,
+            result: sources
+        });
+    })
+})
+
+// 4.资源文章详情阅读数量处理
+router.get("/web/source/api/content/read_count/:sourceId", (req, res, next) => {
+    Source.findById(req.params.sourceId, "read_count", (err, sources) => {
+        if(err){
+            return next(err);
+        }
+        // 取出read_count,并操作
+        sources.read_count += 10;
+        // 保存到数据库
+        sources.save((err, result) => {
+            if(err){
+                return next(err);
+            }
+            res.json({
+                status: 200,
+                result: "阅读数量已更新！"
+            });
+        })
+    })
+})
+
+
+// *************************前台接口路由 end*****************************
 export default router;

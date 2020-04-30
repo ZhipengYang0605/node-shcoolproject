@@ -29,7 +29,6 @@ router.get('/web/res', (req, res) => {
             let sowing = sowings[i];
             sowing['image_tag'] = tag[i];
         }
-        console.log(sowings);
         res.render('web/resources.html', {sowings});
     });
 });

@@ -88,7 +88,6 @@ router.post('/back/sowing/api/edit', (req, res, next) => {
         // 4.1 查找
         Sowing.findById(body.id, (err, sowing) => {
             if (err) {
-                console.log(err);
                 return next(err);
             }
             // 4.2 修改
@@ -119,7 +118,6 @@ router.get('/back/sowing/api/remove/:sowingId', (req, res, next) => {
         if (err) {
             return next(err);
         }
-        console.log(result);
         res.json({
             status: 200,
             result: '成功删除轮播图！'

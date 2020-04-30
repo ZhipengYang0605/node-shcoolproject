@@ -74,7 +74,7 @@
         <div class="menu_nav">
             <ul class="navs clearfix">
                 <li><a href="index.html">首页</a></li>
-                <li><a href="resources.html" class="on">幼教资源</a></li>
+                <li><a href="/web/res" class="on">幼教资源</a></li>
                 <li><a href="#">职场人生</a></li>
                 <li><a href="#">活动专区</a></li>
                 <li><a href="#">直播课堂</a><img src="Images/new_ico.png" class="new_nav"/></li>
@@ -96,16 +96,127 @@
             <div class="here_url">
                 <span>幼教服务系统 > 幼教资源 > </span><span class="here_url_title">正文</span>
             </div>
-            <div class="resource_cons no_top">
-                <div class="resource_cons_left">
+            <div class="resource_cons no_top" id="source_content"></div>
+        </div>
+    </div>
+</div>
+
+<!--footer-->
+
+<!--右功能按钮分享客服回到顶部-->
+<div id="rig_box">
+    <div class="edu-widgets">  
+    
+       <div class="service" >
+           <a title="在线客服" id="advice">
+				<a href="#" title="在线客服">
+                	<i class="tab-ico"></i>
+                    <em class="tab-text">联系客服</em>
+                </a>
+			</a> 
+        </div>
+        <div class="g-top" title="返回顶部" style="margin-top:1px">
+            <a href="#" title="返回顶部">
+            	<i class="tab-ico"></i>
+                <em class="tab-text">回到顶部</em>
+            </a>
+        </div> 
+    </div>
+ <div style="display:none;">
+{literal}
+    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"1","bdMiniList":["mshare","weixin","tsina","tqq","qzone","sqq","copy","print"],"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"0","bdPos":"right","bdTop":"130"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];$(window).ready(function(){$('#rig_box div a').mouseenter(function(){$(this).find('em.tab-text').css("background-color","#3793f8").animate({"left":"-61px"},"fast");$(this).find('i.tab-ico').css("background-color","#3793f8")});	$('#rig_box div a').mouseleave(function(){$(this).find('em.tab-text').css("background-color","#3793f8").animate({"left":"35px"},"fast");$(this).find('i.tab-ico').css("background-color","#3793f8");});})
+</script>
+{/literal}
+</div>
+<!--右功能按钮结束-->
+</div>
+
+<div class="tool-area clearfix">
+    <div class="w1280">
+        <div class="tool_a_l fl">
+            <ul class="clearfix">
+                <li class="first"><h3>帮助中心</h3></li>
+                <li><a href="#">账号管理</a></li>
+                <li><a href="#">积分规则</a></li>
+                <li><a href="#">下载资源</a></li>
+            </ul>
+            <ul class="clearfix">
+                <li class="first"><h3>服务支持</h3></li>
+                <li><a href="#">售后政策</a></li>
+                <li><a href="#">自助服务</a></li>
+                <li><a href="#">相关下载</a></li>
+            </ul>
+            <ul class="clearfix">
+                <li class="first"><h3>入驻平台</h3></li>
+                <li><a href="#">幼儿园入驻</a></li>
+                <li><a href="#">教研室入驻</a></li>
+            </ul>
+            <ul class="clearfix">
+                <li class="first"><h3>关于我们</h3></li>
+                <li><a href="#">加入我们</a></li>
+                <li><a href="#">联系我们</a></li>
+            </ul>
+        </div>
+        <div class="tool_a_r fl">
+            <ul class="clearfix">
+                <li><img src="images/weixin.png" width="100" height="100"><p>关注微信公众平台</p></li>
+                <li><img src="images/xcx.jpg" width="100" height="100"><p>使用幼教小程序</p></li>
+            </ul>
+        </div>
+        <div class="tool_service fr">
+            <div class="service-tel">400-100-5678</div>
+            <div class="service-time">周一至周日  8:00-18:00</div>
+            <div class="service-date"><img src="images/service_ico.png"/>24小时在线客服</div>
+        </div>
+
+    </div>
+</div>
+<div class="footerbar clearfix">
+    <div class="w1280">
+        <p>主办单位：撩课学院  运行维护：撩课学院技术团队  技术支持：撩课教育集团</p>
+        <p>国家教育资源公共服务平台 版权所有 京ICP备itLike号-001</p>
+    </div>
+</div>
+<script src="./Scripts/jquery.js"></script>
+<script>
+    $(function(){
+        // 1.获取页面穿过来的id
+        let url = window.location.search;
+        let sourceId = '';
+        if(url.indexOf("?") != -1){
+            sourceId = url.substr(url.indexOf("=") + 1);
+        }
+        // 2.发起请求文章资源的请求
+        $.ajax({
+            url: "/web/source/api/content/" + sourceId,
+            type: "get",
+            dataType: "json",
+            success: function(data){
+                console.log(data);
+                // 格式化时间
+                // let t = new Date(data.result[0].add_time).getTime();
+                let t = new Date(data.result[0].add_time);
+                // let t = new Date();
+                let year = t.getFullYear();
+                let month = t.getMonth()+1;
+                let day = t.getDate();
+                let hour = t.getHours();
+                let minute = t.getMinutes();
+                // let second = t.getSeconds();
+                let time = `${year}年${month}月${day}日${hour}时${minute}分`;
+                // 3.注入数据
+                let tpl = ``;
+                if(data.status === 200){
+                    tpl = `
+                    <div class="resource_cons_left">
                     <div class="resource_cons_left_top">
                         <div class="resource_cons_left_top_title">
-                            育儿专家张思莱：高质量的陪伴是孩子最好的玩具！
+                            ${data.result[0].title}
                         </div>
                         <div class="resource_cons_left_top_desc">
-                            <div class="resource_cons_left_top_descx"><img src="images/copyright_ico.png"/>来自：刘晶波教授</div>
-                            <div class="resource_cons_left_top_descx"><img src="images/view_ico.png"/>1888</div>
-                            <div class="resource_cons_left_top_descx"><img src="images/date_ico.png"/>2018/07/24</div>
+                            <div class="resource_cons_left_top_descx"><img src="images/copyright_ico.png"/>来自：${data.result[0].author}</div>
+                            <div class="resource_cons_left_top_descx"><img src="images/view_ico.png"/>${data.result[0].read_count}</div>
+                            <div class="resource_cons_left_top_descx"><img src="images/date_ico.png"/>${time}</div>
                         </div>
                     </div>
                     <div class="resource_cons_left_left" id="LeftTool">
@@ -119,24 +230,19 @@
                             <a class="qqWrap"><i class="iconfont icon-qq1"></i></a>
                             <a class="kjWrap"><i class="iconfont icon-qqkongjian"></i></a>
                             <a class="wbWrap"><i class="iconfont icon-weibo1"></i></a>
-                        </div>          
+                        </div>
                         <div class="comment-count-title through"><span>评论</span></div>
                         <a target="_blank" id="cmtLink" class="comment-count" data-bosszone="pls" data-bossirs="pls" href="http://coral.qq.com/3271358992"><span></span><span></span><span></span><div class="text"><i id="cmtNum">680</i></div></a>             
                     </div>
                     <div class="resource_cons_left_right">
-                        <p class="one-p">【环球网综合报道】据韩联社10月28日报道，韩国国防部一位负责人当天表示，朝鲜和韩国等有关方面针对“解除板门店共同警备区(JSA)武装”的共同检查工作已于昨日结束。由此，朝韩民众与外国游客等最快将从下月起自由出入共同警备区。</p>
-                        <p class="one-p">【环球网综合报道】据韩联社10月28日报道，韩国国防部一位负责人当天表示，朝鲜和韩国等有关方面针对“解除板门店共同警备区(JSA)武装”的共同检查工作已于昨日结束。由此，朝韩民众与外国游客等最快将从下月起自由出入共同警备区。</p>
-                        <p class="one-p">【环球网综合报道】据韩联社10月28日报道，韩国国防部一位负责人当天表示，朝鲜和韩国等有关方面针对“解除板门店共同警备区(JSA)武装”的共同检查工作已于昨日结束。由此，朝韩民众与外国游客等最快将从下月起自由出入共同警备区。</p>
-                        <p class="one-p">【环球网综合报道】据韩联社10月28日报道，韩国国防部一位负责人当天表示，朝鲜和韩国等有关方面针对“解除板门店共同警备区(JSA)武装”的共同检查工作已于昨日结束。由此，朝韩民众与外国游客等最快将从下月起自由出入共同警备区。</p>
-                        <p class="one-p">【环球网综合报道】据韩联社10月28日报道，韩国国防部一位负责人当天表示，朝鲜和韩国等有关方面针对“解除板门店共同警备区(JSA)武装”的共同检查工作已于昨日结束。由此，朝韩民众与外国游客等最快将从下月起自由出入共同警备区。</p>
-                        <p class="one-p">【环球网综合报道】据韩联社10月28日报道，韩国国防部一位负责人当天表示，朝鲜和韩国等有关方面针对“解除板门店共同警备区(JSA)武装”的共同检查工作已于昨日结束。由此，朝韩民众与外国游客等最快将从下月起自由出入共同警备区。</p>
-                        <p class="one-p">【环球网综合报道】据韩联社10月28日报道，韩国国防部一位负责人当天表示，朝鲜和韩国等有关方面针对“解除板门店共同警备区(JSA)武装”的共同检查工作已于昨日结束。由此，朝韩民众与外国游客等最快将从下月起自由出入共同警备区。</p>
+                        ${data.result[0].content}
                     </div>
                     <div class="resource_cons_left_bottom">
                         <div class="comment_box">
                         </div>
                     </div>
                 </div>
+
                 <div class="resource_cons_right">
                     <div class="resource_cons_right_rank">
                         <div class="resource_cons_right_rank_title">
@@ -228,88 +334,25 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+                    `;
+                    // console.log(data.result[0].title)
+                }
+                $("#source_content").html(tpl);
+            }
+        });
 
-<!--footer-->
-
-<!--右功能按钮分享客服回到顶部-->
-<div id="rig_box">
-    <div class="edu-widgets">  
-    
-       <div class="service" >
-           <a title="在线客服" id="advice">
-				<a href="#" title="在线客服">
-                	<i class="tab-ico"></i>
-                    <em class="tab-text">联系客服</em>
-                </a>
-			</a> 
-        </div>
-        <div class="g-top" title="返回顶部" style="margin-top:1px">
-            <a href="#" title="返回顶部">
-            	<i class="tab-ico"></i>
-                <em class="tab-text">回到顶部</em>
-            </a>
-        </div> 
-    </div>
- <div style="display:none;">
-{literal}
-    <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"1","bdMiniList":["mshare","weixin","tsina","tqq","qzone","sqq","copy","print"],"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"0","bdPos":"right","bdTop":"130"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];$(window).ready(function(){$('#rig_box div a').mouseenter(function(){$(this).find('em.tab-text').css("background-color","#3793f8").animate({"left":"-61px"},"fast");$(this).find('i.tab-ico').css("background-color","#3793f8")});	$('#rig_box div a').mouseleave(function(){$(this).find('em.tab-text').css("background-color","#3793f8").animate({"left":"35px"},"fast");$(this).find('i.tab-ico').css("background-color","#3793f8");});})
+        // 进入资源文文章详情时，更改阅读数量
+        $.ajax({
+            url: "/web/source/api/content/read_count/" + sourceId,
+            type: "get",
+            dataType: "json",
+            success: function(data){
+                // console.log(data);
+                // 注入数据
+            }
+        })
+    })
 </script>
-{/literal}
-</div>
-<!--右功能按钮结束-->
-</div>
-
-<div class="tool-area clearfix">
-    <div class="w1280">
-        <div class="tool_a_l fl">
-            <ul class="clearfix">
-                <li class="first"><h3>帮助中心</h3></li>
-                <li><a href="#">账号管理</a></li>
-                <li><a href="#">积分规则</a></li>
-                <li><a href="#">下载资源</a></li>
-            </ul>
-            <ul class="clearfix">
-                <li class="first"><h3>服务支持</h3></li>
-                <li><a href="#">售后政策</a></li>
-                <li><a href="#">自助服务</a></li>
-                <li><a href="#">相关下载</a></li>
-            </ul>
-            <ul class="clearfix">
-                <li class="first"><h3>入驻平台</h3></li>
-                <li><a href="#">幼儿园入驻</a></li>
-                <li><a href="#">教研室入驻</a></li>
-            </ul>
-            <ul class="clearfix">
-                <li class="first"><h3>关于我们</h3></li>
-                <li><a href="#">加入我们</a></li>
-                <li><a href="#">联系我们</a></li>
-            </ul>
-        </div>
-        <div class="tool_a_r fl">
-            <ul class="clearfix">
-                <li><img src="images/weixin.png" width="100" height="100"><p>关注微信公众平台</p></li>
-                <li><img src="images/xcx.jpg" width="100" height="100"><p>使用幼教小程序</p></li>
-            </ul>
-        </div>
-        <div class="tool_service fr">
-            <div class="service-tel">400-100-5678</div>
-            <div class="service-time">周一至周日  8:00-18:00</div>
-            <div class="service-date"><img src="images/service_ico.png"/>24小时在线客服</div>
-        </div>
-
-    </div>
-</div>
-<div class="footerbar clearfix">
-    <div class="w1280">
-        <p>主办单位：撩课学院  运行维护：撩课学院技术团队  技术支持：撩课教育集团</p>
-        <p>国家教育资源公共服务平台 版权所有 京ICP备itLike号-001</p>
-    </div>
-</div>
-
 </body>
 
 </html>

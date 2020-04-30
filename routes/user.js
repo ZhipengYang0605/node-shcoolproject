@@ -169,7 +169,6 @@ router.post('/back/user/api/reset', (req, res, next) => {
     const new_pwd = req.body.new_pwd;
     // 2.根据token查询用户
     User.findById(token, (err, user) => {
-        console.log(user);
         if(err) {
             return next(err);
         }
