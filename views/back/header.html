@@ -25,6 +25,8 @@
             });
             // 2.删除本地数据
             sessionStorage.removeItem('result');
+            sessionStorage.removeItem("currentActive");
+            sessionStorage.removeItem("currentUser");
             // 3.跳转到登录页面
             window.location.href = '/back/login';
         });
